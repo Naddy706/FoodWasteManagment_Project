@@ -1,6 +1,12 @@
 # FoodWasteManagment_Project
 
+
+
+
 ## final year Diploma project
+
+###  Check AdminPanel in my Repository
+
 
 > firebase auth
 > 2 Apps
