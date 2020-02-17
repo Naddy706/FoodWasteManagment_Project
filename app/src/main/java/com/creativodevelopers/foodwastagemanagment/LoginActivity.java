@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onClick(View v) {
                 Intent regINtent = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(regINtent);
-                finish();
+
                 //SendUserToRegisterActivity();
                 Toast.makeText(LoginActivity.this, "clicked", Toast.LENGTH_SHORT).show();
             }
