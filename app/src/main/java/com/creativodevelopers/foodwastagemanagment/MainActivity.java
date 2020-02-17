@@ -1,36 +1,51 @@
 package com.creativodevelopers.foodwastagemanagment;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btn;
 
+    private TabLayout myTabLayout;
+    private ViewPager myViewPager;
+    //    private TabItem tab1,tab2,tab3;
+    PagerAdapter pagerAdapter;
+    Button btn;
+    private Toolbar mToolbar;
     FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mAuth=FirebaseAuth.getInstance();
-        btn=findViewById(R.id.logout);
 
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mAuth.signOut();
+        myViewPager=(ViewPager) findViewById(R.id.ViewPager);
+        pagerAdapter = new TabsAccessorAdapter(getSupportFragmentManager());
+        myViewPager.setAdapter(pagerAdapter);
 
-                SendUserToLoginActivity();
-            }
-        });
+        myTabLayout=(TabLayout) findViewById(R.id.tablayout);
+        myTabLayout.setupWithViewPager(myViewPager);
+
+        mToolbar = (Toolbar) findViewById(R.id.main_page_toolbar);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setTitle("Show Event");
 
     }
 
@@ -51,5 +66,26 @@ public class MainActivity extends AppCompatActivity {
         if(currentUser == null ){
             SendUserToLoginActivity();
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater=getMenuInflater();
+        inflater.inflate(R.menu.menu,menu);
+        return true;
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(item.getItemId() == R.id.AddEvent){
+
+        }
+        else if(item.getItemId() == R.id.Setting){
+
+        }
+
+        return true;
+
     }
 }
