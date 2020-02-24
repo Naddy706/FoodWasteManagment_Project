@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +52,7 @@ public class ShowEventFragment extends Fragment {
     ArrayList<String> votes = new ArrayList<String>();
     ArrayList<String> foodidd = new ArrayList<String>();
     String[] simpleArray,simpleArray2,simpleArray3,foodid;
+    String TotalPeople ="";
 
 
     public ShowEventFragment() {
@@ -182,7 +184,7 @@ public class ShowEventFragment extends Fragment {
                                             String id=data.child("eventid").getValue().toString();
                                             if(id.equals(eventId))
                                             {
-                                                foodidd.add(data.getKey().toString());
+                                                foodidd.add(data.getKey());
                                                 mylist.add(data.child("foodname").getValue().toString());
                                                 key.add(data.child("eventid").getValue().toString());
                                                 votes.add(data.child("Votes").getValue().toString());
@@ -263,7 +265,7 @@ public class ShowEventFragment extends Fragment {
 
     }
 
-    private void Vote(String s, String s1, String s2,int index) {
+    private void Vote(String s, final String s1, String s2, final int index) {
 //
 //        Toast.makeText(getActivity(), "s"+s, Toast.LENGTH_SHORT).show();
 //        Toast.makeText(getActivity(), "s1"+s1, Toast.LENGTH_SHORT).show();
@@ -285,7 +287,35 @@ public class ShowEventFragment extends Fragment {
 
                 if(task.isSuccessful())
                 {
-                    Toast.makeText(getActivity(), "Your request for Joining event is pending and Vote To food is Counted", Toast.LENGTH_SHORT).show();
+                    interestedref.child(s1).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            TotalPeople=dataSnapshot.child("TotalPeople").getValue().toString();
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    int result1 = Integer.parseInt(TotalPeople);
+                    result1=result1+1;
+                    String res1 = Integer.toString(result1);
+
+
+                    HashMap<String,String> interested=new HashMap<>();
+                    interested.put("TotalPeople",res1);
+
+                    //Toast.makeText(getActivity(), "Your request for Joining event is pending and Vote To food is Counted", Toast.LENGTH_SHORT).show();
+                  interestedref.child(s1).setValue(interested).addOnCompleteListener(new OnCompleteListener<Void>() {
+                      @Override
+                      public void onComplete(@NonNull Task<Void> task) {
+
+                      }
+                  })  ;
                 }
                 else {
                     Toast.makeText(getActivity(), "failed to Vote food", Toast.LENGTH_SHORT).show();
