@@ -1,5 +1,6 @@
 package com.creativodevelopers.foodwastagemanagment;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,9 +35,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 
 
 public class ShowEventFragment extends Fragment {
@@ -45,7 +53,7 @@ public class ShowEventFragment extends Fragment {
     private View showEvent;
     private RecyclerView showEventList;
 
-    private DatabaseReference eventRef,interestedref,foodRef;
+    private DatabaseReference eventRef,interestedref,foodRef,myRef;
     private FirebaseAuth mAuth;
     ArrayList<String> mylist = new ArrayList<String>();
     ArrayList<String> key = new ArrayList<String>();
@@ -53,6 +61,10 @@ public class ShowEventFragment extends Fragment {
     ArrayList<String> foodidd = new ArrayList<String>();
     String[] simpleArray,simpleArray2,simpleArray3,foodid;
     String TotalPeople ="";
+    ProgressDialog dialog2;
+    String a,b,c,d;
+    int aa=0;
+    Date date,date2;
 
 
     public ShowEventFragment() {
@@ -68,16 +80,17 @@ public class ShowEventFragment extends Fragment {
         interestedref=FirebaseDatabase.getInstance().getReference().child("Interested");
         foodRef=FirebaseDatabase.getInstance().getReference().child("Food");
         mAuth=FirebaseAuth.getInstance();
-
-
+        myRef = FirebaseDatabase.getInstance().getReference("interestedusers");
+        dialog2=new ProgressDialog(getActivity());
+        dialog2.setMessage("Loading...");
+        dialog2.setCancelable(false);
+        dialog2.show();
         showEventList =  showEvent.findViewById(R.id.event_list);
         showEventList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
 
         return showEvent;
     }
-
-
 
 
     @Override
@@ -101,6 +114,8 @@ public class ShowEventFragment extends Fragment {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
 
+                        dialog2.dismiss();
+
                         if(dataSnapshot.exists()){
 
                             if(dataSnapshot.hasChild("image")){
@@ -111,19 +126,92 @@ public class ShowEventFragment extends Fragment {
                                 final String da=dataSnapshot.child("date").getValue().toString();
                                 final String ti=dataSnapshot.child("time").getValue().toString();
                                 final String l=dataSnapshot.child("location").getValue().toString();
+                                d=dataSnapshot.getKey();
 
-                                holder.Title.setText(tit);
-                                holder.Description.setText(des);
-                                holder.Location.setText(l);
-                                holder.Date.setText(da);
-                                holder.Time.setText(ti);
-                                Picasso.get().load(eventImage).placeholder(R.drawable.eventimage).into(holder.EventImage);
-                                holder.Interested.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        interestedUser(eventId);
+                                String ab=Calendar.getInstance().get(Calendar.YEAR)+"";
+                                String ab2=Calendar.getInstance().get(Calendar.DATE)+"";
+                                String ab3=Calendar.getInstance().get(Calendar.MONTH)+"";
+                                String ab4=ab2+"-"+ab3+"-"+ab;
+                                String dtStart = da;
+                                SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+                                try {
+                                     date = format.parse(dtStart);
+
+                                    if (date.before(new Date())) {
+                                       holder.itemView.setVisibility(View.INVISIBLE);
                                     }
-                                });
+                                    else {
+                                        holder.itemView.setVisibility(View.VISIBLE);
+                                        holder.Title.setText(tit);
+                                        holder.Description.setText(des);
+                                        holder.Location.setText(l);
+                                        holder.Date.setText(da);
+                                        holder.Time.setText(ti);
+                                        holder.Id.setText(d);
+
+
+
+                                        myRef.addValueEventListener(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot2) {
+                                                for (DataSnapshot dsp : dataSnapshot2.getChildren()) {
+
+                                                    a=dsp.child("event_key").getValue().toString();
+                                                    b=dsp.child("food_key").getValue().toString();
+                                                    c=dsp.child("user_key").getValue().toString();
+                                                      // Toast.makeText(getActivity(), "key "+d, Toast.LENGTH_SHORT).show();
+                                                    if(holder.Id.getText().equals(a) && c.equals(FirebaseAuth.getInstance().getUid().toString()))
+                                                    {
+                                                        holder.Interested.setText("Registered");
+                                                        holder.Interested.setEnabled(false);
+                                                        a="";
+                                                        b="";
+                                                        c="";
+                                                        d="";
+                                                    }
+                                                    else{
+                                                        Toast.makeText(getActivity(), "key "+d, Toast.LENGTH_SHORT).show();
+                                                        holder.Interested.setText("Interested");
+                                                        holder.Interested.setEnabled(true);
+                                                        a="";
+                                                        b="";
+                                                        c="";
+                                                        d="";
+                                                    }
+
+                                                }
+
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError error) {
+
+                                            }
+                                        });
+
+                                        Picasso.get().load(eventImage).placeholder(R.drawable.eventimage).into(holder.EventImage);
+
+
+                                        holder.Interested.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+
+                                                mylist.clear();
+                                                key.clear();
+                                                votes.clear();
+                                                foodidd.clear();
+
+                                                interestedUser(eventId);
+
+                                            }
+                                        });
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+
+
+
 
                             }
                             else {
@@ -213,11 +301,12 @@ public class ShowEventFragment extends Fragment {
 
                                                 for(int i = 0; i < simpleArray.length; i++){
                                                     if(which == i){
-
+                                                        interesteduser(simpleArray2[i],foodid[i],FirebaseAuth.getInstance().getCurrentUser().getUid());
                                                         Vote(simpleArray[i],simpleArray2[i],simpleArray3[i],i);
                                                     }
 
                                                 }
+
 
                                                 foodid=null;
                                                 simpleArray=null;
@@ -227,6 +316,7 @@ public class ShowEventFragment extends Fragment {
                                                 key.clear();
                                                 votes.clear();
                                                 foodidd.clear();
+
                                             }
                                         });
 
@@ -242,40 +332,30 @@ public class ShowEventFragment extends Fragment {
                                     }
                                 });
 
-//        String CurrentID=mAuth.getUid();
-//
-//        HashMap<String,String> map= new HashMap<>();
-//        map.put("eventId",eventId);
-//        map.put("USerId",CurrentID);
-//
-//
-//        interestedref.push().setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-//            @Override
-//            public void onComplete(@NonNull Task<Void> task) {
-//
-//                if(task.isSuccessful()){
-//                    Toast.makeText(getActivity(), "Your request is send to Admin", Toast.LENGTH_SHORT).show();
-//                }
-//                else {
-//                    Toast.makeText(getActivity(), "Failed to send Request", Toast.LENGTH_SHORT).show();
-//                }
-//
-//            }
-//        });
 
     }
 
+
+
+    public void interesteduser(String event_key,String food_key,String userkey){
+
+        DatabaseReference abc=FirebaseDatabase.getInstance().getReference().child("interestedusers");
+        Map<String,String> map=new HashMap<>();
+
+        map.put("event_key",event_key);
+        map.put("food_key",food_key);
+        map.put("user_key",userkey);
+
+        abc.push().setValue(map);
+    }
+
+
     private void Vote(String s, final String s1, String s2, final int index) {
-//
-//        Toast.makeText(getActivity(), "s"+s, Toast.LENGTH_SHORT).show();
-//        Toast.makeText(getActivity(), "s1"+s1, Toast.LENGTH_SHORT).show();
-//        Toast.makeText(getActivity(), "s2"+s2, Toast.LENGTH_SHORT).show();
 
         int result = Integer.parseInt(s2);
         result=result+1;
         String res = Integer.toString(result);
 
-//        Toast.makeText(getActivity(), ""+foodidd.get(index), Toast.LENGTH_SHORT).show();
         HashMap<String,String> map = new HashMap<>();
         map.put("Votes",res);
         map.put("eventid",s1);
@@ -287,35 +367,7 @@ public class ShowEventFragment extends Fragment {
 
                 if(task.isSuccessful())
                 {
-                    interestedref.child(s1).addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-
-                            TotalPeople=dataSnapshot.child("TotalPeople").getValue().toString();
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-                    int result1 = Integer.parseInt(TotalPeople);
-                    result1=result1+1;
-                    String res1 = Integer.toString(result1);
-
-
-                    HashMap<String,String> interested=new HashMap<>();
-                    interested.put("TotalPeople",res1);
-
-                    //Toast.makeText(getActivity(), "Your request for Joining event is pending and Vote To food is Counted", Toast.LENGTH_SHORT).show();
-                  interestedref.child(s1).setValue(interested).addOnCompleteListener(new OnCompleteListener<Void>() {
-                      @Override
-                      public void onComplete(@NonNull Task<Void> task) {
-
-                      }
-                  })  ;
+                    Toast.makeText(getActivity(), " Voted Sucessfully", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     Toast.makeText(getActivity(), "failed to Vote food", Toast.LENGTH_SHORT).show();
@@ -332,7 +384,7 @@ public class ShowEventFragment extends Fragment {
 
     public static class EventViewHolder extends RecyclerView.ViewHolder {
 
-        TextView Title, Description,Date , Time , Location;
+        TextView Title, Description,Date , Time , Location, Id;
         Button Interested;
         ImageView EventImage;
 
@@ -346,6 +398,7 @@ public class ShowEventFragment extends Fragment {
             Location=itemView.findViewById(R.id.location);
             EventImage= itemView.findViewById(R.id.Eventimage);
             Interested=itemView.findViewById(R.id.interested);
+            Id=itemView.findViewById(R.id.id);
 
         }
     }
