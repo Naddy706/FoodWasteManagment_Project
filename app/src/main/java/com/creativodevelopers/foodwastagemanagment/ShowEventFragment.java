@@ -60,7 +60,6 @@ public class ShowEventFragment extends Fragment {
     ArrayList<String> votes = new ArrayList<String>();
     ArrayList<String> foodidd = new ArrayList<String>();
     String[] simpleArray,simpleArray2,simpleArray3,foodid;
-    String TotalPeople ="";
     ProgressDialog dialog2;
     String a,b,c,d;
     int aa=0;
@@ -76,6 +75,7 @@ public class ShowEventFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         showEvent=inflater.inflate(R.layout.fragment_show_event, container, false);
+
         eventRef= FirebaseDatabase.getInstance().getReference().child("Event");
         interestedref=FirebaseDatabase.getInstance().getReference().child("Interested");
         foodRef=FirebaseDatabase.getInstance().getReference().child("Food");
@@ -84,7 +84,7 @@ public class ShowEventFragment extends Fragment {
         dialog2=new ProgressDialog(getActivity());
         dialog2.setMessage("Loading...");
         dialog2.setCancelable(false);
-        dialog2.show();
+     //   dialog2.show();
         showEventList =  showEvent.findViewById(R.id.event_list);
         showEventList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
@@ -104,7 +104,7 @@ public class ShowEventFragment extends Fragment {
 
 
 
-        FirebaseRecyclerAdapter<Event,EventViewHolder> adapter= new FirebaseRecyclerAdapter<Event, EventViewHolder>(options) {
+        final FirebaseRecyclerAdapter<Event,EventViewHolder> adapter= new FirebaseRecyclerAdapter<Event, EventViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull final EventViewHolder holder, int position, @NonNull Event model) {
 
@@ -114,9 +114,9 @@ public class ShowEventFragment extends Fragment {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
 
-                        dialog2.dismiss();
-
                         if(dataSnapshot.exists()){
+
+                            dialog2.dismiss();
 
                             if(dataSnapshot.hasChild("image")){
 
@@ -170,7 +170,7 @@ public class ShowEventFragment extends Fragment {
                                                         d="";
                                                     }
                                                     else{
-                                                        Toast.makeText(getActivity(), "key "+d, Toast.LENGTH_SHORT).show();
+                                                     //   Toast.makeText(getActivity(), "key "+d, Toast.LENGTH_SHORT).show();
                                                         holder.Interested.setText("Interested");
                                                         holder.Interested.setEnabled(true);
                                                         a="";
@@ -255,11 +255,15 @@ public class ShowEventFragment extends Fragment {
         };
 
         showEventList.setAdapter(adapter);
-        adapter.startListening();
+
+      adapter.startListening();
+
     }
 
     private void interestedUser(final String eventId) {
 
+
+        dialog2.dismiss();
 
                                 foodRef.addValueEventListener(new ValueEventListener() {
                                     @Override

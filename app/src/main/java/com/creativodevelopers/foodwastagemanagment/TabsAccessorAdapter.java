@@ -19,7 +19,8 @@ public class TabsAccessorAdapter extends FragmentPagerAdapter {
         switch (i){
             case 0:
                 return  new ShowEventFragment();
-
+            case 1:
+                return  new myeventsfragment();
             default:
                 return  null;
         }
@@ -29,7 +30,12 @@ public class TabsAccessorAdapter extends FragmentPagerAdapter {
     @Override
     public int getCount() {
 
-        return 1;
+        return 2;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
 
@@ -40,6 +46,8 @@ public class TabsAccessorAdapter extends FragmentPagerAdapter {
         switch (position){
             case 0:
                 return  "Show Event";
+            case 1:
+                return  "Registered Events";
 
             default:
                 return  null;

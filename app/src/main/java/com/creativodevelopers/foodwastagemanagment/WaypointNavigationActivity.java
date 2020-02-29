@@ -119,8 +119,7 @@ public class WaypointNavigationActivity extends AppCompatActivity implements OnM
     public boolean onMapClick(@NonNull LatLng point) {
 
         Point destinationPoint = Point.fromLngLat(point.getLongitude(), point.getLatitude());
-        Point originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
-                locationComponent.getLastKnownLocation().getLatitude());
+        Point originPoint = Point.fromLngLat(Double.parseDouble(getIntent().getStringExtra("long")),Double.parseDouble(getIntent().getStringExtra("lat")));
 
         GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
         if (source != null) {
